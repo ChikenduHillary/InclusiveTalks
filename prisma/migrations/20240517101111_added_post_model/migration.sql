@@ -1,0 +1,22 @@
+-- CreateTable
+CREATE TABLE "User" (
+    "id" STRING NOT NULL,
+    "email" STRING NOT NULL,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Post" (
+    "id" STRING NOT NULL,
+    "text" STRING NOT NULL,
+    "authorId" STRING,
+
+    CONSTRAINT "Post_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_id_key" ON "User"("id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");

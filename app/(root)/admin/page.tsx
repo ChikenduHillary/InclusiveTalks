@@ -13,13 +13,15 @@ const Page: FunctionComponent<PageProps> = async () => {
   const { getUser } = getKindeServerSession();
   const user = await getUser();
 
-  const dbUser = await db.user.findFirst({
-    where: {
-      id: user.id,
-    },
-  });
+  if (user) {
+    const dbUser = await db.user.findFirst({
+      where: {
+        id: user!.id,
+      },
+    });
 
-  if (!dbUser) redirect("/auth-callback?origin=admin");
+    if (!dbUser) redirect("/auth-callback?origin=admin");
+  }
 
   return (
     <section>
