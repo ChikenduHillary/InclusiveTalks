@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react"; // Step 1: Import Suspense
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { trpc } from "../_trpc/client";
 import { Loader2 } from "lucide-react";
@@ -27,9 +27,7 @@ const Page = () => {
   });
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      {" "}
-      {/* Step 2: Wrap useSearchParams with Suspense */}
+    <Suspense>
       <div className="w-full pt-24 text-center space-y-2 bg-background h-screen fixed top-0 justify-center">
         <div className="flex flex-col items-center gap-2">
           <Loader2 className="h-8 w-8 animate-spin text-zinc-800" />
