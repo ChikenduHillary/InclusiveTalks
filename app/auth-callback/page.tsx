@@ -10,7 +10,6 @@ const Page = () => {
   const searchParams = useSearchParams();
   const origin = searchParams.get("origin");
 
-  // Wrap the section that depends on the search parameters with Suspense
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <PageContent origin={origin} router={router} />
