@@ -46,6 +46,7 @@ export const appRouter = router({
       });
 
       console.log(post);
+      return post;
     }),
 
   getAllPost: privateProcedure.query(async () => {

@@ -32,14 +32,14 @@ const AdminPage = ({ user }: any) => {
   const {
     register,
     handleSubmit,
-    setError,
     reset,
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(postValidations) });
 
   const { mutate: createPost, isLoading } = trpc.createPost.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("Posted Successfully");
+      setAllPosts((prev) => [...prev, data]);
       reset();
     },
   });
@@ -111,7 +111,11 @@ const AdminPage = ({ user }: any) => {
                             } bg-opacity-70 h-[2.5em]`}
                           >
                             <td>{i}</td>
-                            <td>{post.text}</td>
+                            <td className="text-center grid place-items-center">
+                              <p className="w-[15em] truncate text-center">
+                                {post.text}
+                              </p>
+                            </td>
                             <td>{format(post.createdAt!, "PPpp")}</td>
                             <td>{post.views}</td>
                           </tr>
