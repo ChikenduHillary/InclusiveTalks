@@ -88,7 +88,7 @@ const AdminPage = ({ user }: any) => {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl grid place-items-center border-brown mt-10 p-5 border-2">
+            <div className="bg-white rounded-xl grid place-items-center border-brown mt-10 p-5 border-2 overflow-x-auto ">
               {allPostsLoadiing ? (
                 <Loader2 className="animate-spin w-7 h-7 text-brown" />
               ) : (
@@ -101,7 +101,7 @@ const AdminPage = ({ user }: any) => {
                       <th>Views</th>
                     </tr>
                   </thead>
-                  <tbody className="text-center border-2 border-brown">
+                  <tbody className="text-center border-2 space-x-2 border-brown">
                     {allPosts
                       ? allPosts.map((post, i) => (
                           <tr
@@ -116,7 +116,11 @@ const AdminPage = ({ user }: any) => {
                                 {post.text}
                               </p>
                             </td>
-                            <td>{format(post.createdAt!, "PPpp")}</td>
+                            <td>
+                              <p className="truncate">
+                                {format(post.createdAt!, "PPpp")}
+                              </p>
+                            </td>
                             <td>{post.views}</td>
                           </tr>
                         ))
