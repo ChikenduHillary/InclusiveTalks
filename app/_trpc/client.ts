@@ -1,19 +1,22 @@
-import { createTRPCReact } from "@trpc/react-query";
-import { AppRouter } from "@/trpc";
-import { httpBatchLink } from "@trpc/client";
+import { NextApiRequest, NextApiResponse } from "next";
+import * as trpcNext from "@trpc/server/adapters/next";
+import Cors from "nextjs-cors";
+import { appRouter } from "@/trpc";
+import { createContext } from "@/trpc/context";
 
-// Create a tRPC React instance
-export const trpc = createTRPCReact<AppRouter>();
-
-// Define a function to create the tRPC client with the correct URL
-export const createTRPCClient = () => {
-  return trpc.createClient({
-    links: [
-      httpBatchLink({
-        url:
-          process.env.NEXT_PUBLIC_TRPC_API_URL ||
-          "http://localhost:3000/api/trpc",
-      }),
-    ],
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  // Run the cors middleware
+  await Cors(req, res, {
+    methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
+    origin: process.env.VERCEL_URL || "http://localhost:3000",
+    optionsSuccessStatus: 200,
   });
-};
+
+  return trpcNext.createNextApiHandler({
+    router: appRouter,
+    createContext,
+  })(req, res);
+}
