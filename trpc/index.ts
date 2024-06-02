@@ -34,13 +34,23 @@ export const appRouter = router({
   }),
 
   createPost: privateProcedure
-    .input(z.object({ text: z.string() }))
+    .input(
+      z.object({
+        text: z.string(),
+        writtenBy: z.string(),
+        imgUrl: z.string(),
+        title: z.string(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       const { userId } = ctx;
 
       const post = await db.post.create({
         data: {
           text: input.text,
+          writtenBy: input.writtenBy,
+          imgUrl: input.imgUrl,
+          title: input.title,
           authorId: userId,
         },
       });

@@ -14,12 +14,17 @@ import { trpc } from "@/app/_trpc/client";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
 import { useState } from "react";
+import { UploadButton, UploadDropzone } from "@/lib/uploadthing";
+import "@uploadthing/react/styles.css";
+import { FaCheckCircle } from "react-icons/fa";
 
 type post = {
   id: string;
   num?: number;
   text: string;
   views?: number;
+  writtenBy: string;
+  title: string;
   createdAt?: string;
   updatedAt?: string;
   authorId: string | null;
@@ -28,6 +33,10 @@ type post = {
 type FormData = z.infer<typeof postValidations>;
 const AdminPage = ({ user }: any) => {
   const [allPosts, setAllPosts] = useState<post[]>([]);
+  const [imgData, setImgData] = useState<{
+    name: string;
+    url: string;
+  } | null>();
 
   const {
     register,
@@ -39,7 +48,9 @@ const AdminPage = ({ user }: any) => {
   const { mutate: createPost, isLoading } = trpc.createPost.useMutation({
     onSuccess: (data) => {
       toast.success("Posted Successfully");
+      console.log(data);
       setAllPosts((prev) => [...prev, data]);
+      setImgData(null);
       reset();
     },
   });
@@ -50,13 +61,22 @@ const AdminPage = ({ user }: any) => {
     error,
   } = trpc.getAllPost.useQuery();
 
+  console.log(allPostsDb);
+
   if (allPostsDb) {
-    if (!(allPosts.length > 0)) setAllPosts(allPostsDb);
+    if (allPostsDb.length == 0) {
+      // Do nothing
+    } else if (allPostsDb.length > 0) {
+      console.log("working");
+      if (!(allPosts.length > 0)) setAllPosts(allPostsDb);
+    }
   }
 
   const onSubmit = async (data: FormData) => {
+    const { post, writtenBy, title } = data;
     try {
-      createPost({ text: data.post });
+      if (!imgData) return toast.error("Youve not added an image");
+      createPost({ text: post, writtenBy, title, imgUrl: imgData?.url! });
     } catch (error) {
       toast.error("Something went wrong. try again later");
     }
@@ -112,8 +132,8 @@ const AdminPage = ({ user }: any) => {
                           >
                             <td>{i}</td>
                             <td className="text-center grid place-items-center">
-                              <p className="w-[15em] truncate text-center">
-                                {post.text}
+                              <p className="w-[15em] truncate text-center pt-2">
+                                {post.title}
                               </p>
                             </td>
                             <td>
@@ -142,6 +162,26 @@ const AdminPage = ({ user }: any) => {
                     onSubmit={handleSubmit(onSubmit)}
                     className="flex flex-col items-end"
                   >
+                    <div className="w-full flex flex-col mt-5 gap-5">
+                      <div className="w-full">
+                        <p className="text-brown font-semibold">Title</p>
+                        <input
+                          type="text"
+                          className="w-full max-w-lg border-2 rounded-lg border-brown p-3"
+                          placeholder="Title of the post"
+                          {...register("title", { required: true })}
+                        />
+                      </div>
+                      <div className="w-full">
+                        <p className="text-brown font-semibold">Written By</p>
+                        <input
+                          type="text"
+                          className="w-full max-w-lg border-2 rounded-lg border-brown p-3"
+                          placeholder="the author"
+                          {...register("writtenBy", { required: true })}
+                        />
+                      </div>
+                    </div>
                     <div className="bg-white w-full border-brown border-2 mt-10 rounded-lg p-5 pt-20 h-[30em]">
                       <textarea
                         className={`border-2 rounded-lg h-full p-5  w-full ${
@@ -156,6 +196,34 @@ const AdminPage = ({ user }: any) => {
                           <TriangleAlert />
                           <span className="mt-1">{errors.post?.message}</span>
                         </p>
+                      )}
+                    </div>
+                    <div className=" bg-white border-2 border-dashed border-brown rounded-xl mx-auto mt-10 cursor-pointer w-full max-w-lg h-fit">
+                      {!imgData ? (
+                        <UploadDropzone
+                          endpoint="imageUploader"
+                          className="ut-label:text-brown border-none ut-upload-icon:text-brown ut-readying:text-brown ut-uploading:text-brown ut-button:bg-brown ut-label:hover:text-brown ut-button:ut-uploading:bg-opacity-80 ut-button:ut-uploading:bg-brown"
+                          onClientUploadComplete={(res) => {
+                            // Do something with the response
+                            setImgData(res[0]);
+                          }}
+                          onUploadError={(error: Error) => {
+                            // Do something with the error.
+                            alert(`ERROR! ${error.message}`);
+                          }}
+                        />
+                      ) : (
+                        <div className="h-[15em] w-full flex flex-col items-center p-5 text-center">
+                          <FaCheckCircle className="text-green-600 h-9 w-9 my-10" />
+                          <div>
+                            <p className="text-brown text-sm">
+                              Successfully Uploaded
+                            </p>
+                            <p className="font-semibold text-brown ">
+                              {imgData.name}
+                            </p>
+                          </div>
+                        </div>
                       )}
                     </div>
                     <button
