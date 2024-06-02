@@ -49,7 +49,7 @@ export const appRouter = router({
       return post;
     }),
 
-  getAllPost: privateProcedure.query(async () => {
+  getAllPost: publicProcedure.query(async () => {
     return await db.post.findMany();
   }),
 });
