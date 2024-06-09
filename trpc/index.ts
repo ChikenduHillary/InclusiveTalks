@@ -2,7 +2,7 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { privateProcedure, publicProcedure, router } from "./trpc";
 import { TRPCError } from "@trpc/server";
 import { db } from "@/db";
-import { date, z } from "zod";
+import { z } from "zod";
 
 export const appRouter = router({
   authCallback: publicProcedure.query(async () => {
@@ -55,13 +55,44 @@ export const appRouter = router({
         },
       });
 
-      console.log(post);
       return post;
     }),
 
   getAllPost: publicProcedure.query(async () => {
     return await db.post.findMany();
   }),
+  createSubscribers: publicProcedure
+    .input(z.object({ token: z.string(), email: z.string().email() }))
+    .mutation(async ({ ctx, input }) => {
+      const { token, email } = input;
+      const SUBSCRIBE_TOKEN = process.env.SUBSCRIBE_TOKEN;
+
+      if (token !== SUBSCRIBE_TOKEN)
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Invalid Token",
+        });
+
+      const emailExist = await db.subscribers.findFirst({
+        where: {
+          email,
+        },
+      });
+
+      if (emailExist)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Email already exist",
+        });
+
+      const subscribe = await db.subscribers.create({
+        data: {
+          email,
+        },
+      });
+
+      return subscribe;
+    }),
 });
 
 export type AppRouter = typeof appRouter;

@@ -1,4 +1,3 @@
-// route.ts
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { appRouter } from "@/trpc";
 import { NextRequest, NextResponse } from "next/server";
@@ -20,7 +19,7 @@ const handler = async (req: NextRequest) => {
     endpoint: "/api/trpc",
     req,
     router: appRouter,
-    createContext: () => ({}),
+    createContext: () => ({}), // Adjust context creation as needed
   });
 
   // Add CORS headers to the response
@@ -31,4 +30,4 @@ const handler = async (req: NextRequest) => {
   return response;
 };
 
-export { handler as GET, handler as POST };
+export { handler as GET, handler as POST, handler as OPTIONS };
