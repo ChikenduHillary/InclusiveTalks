@@ -67,8 +67,6 @@ export const appRouter = router({
       const { token, email } = input;
       const SUBSCRIBE_TOKEN = process.env.SUBSCRIBE_TOKEN;
 
-      return { token, SUBSCRIBE_TOKEN };
-
       if (token !== SUBSCRIBE_TOKEN)
         throw new TRPCError({
           code: "UNAUTHORIZED",
