@@ -1,33 +1,34 @@
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { privateProcedure, publicProcedure, router } from "./trpc";
 import { TRPCError } from "@trpc/server";
-import { db } from "@/db";
+import db from "@/db";
 import { z } from "zod";
+import { Subs, post } from "@/types";
 
 export const appRouter = router({
   authCallback: publicProcedure.query(async () => {
     const { getUser } = getKindeServerSession();
     const user = await getUser();
-    console.log(user);
+    const { id, given_name, email } = user!;
 
     if (!user!.id || !user!.email)
       throw new TRPCError({ code: "UNAUTHORIZED" });
 
     // check if the user is in the database
-    const dbUser = await db.user.findFirst({
-      where: {
-        id: user!.id,
-      },
-    });
+    // Get all user objects from the set
+    const userJsons = await db.smembers("users");
+
+    // Find the user object with the matching ID
+    const dbUser = userJsons
+      .map((userJson) => JSON.parse(userJson))
+      .find((user) => user.id === id);
 
     if (!dbUser) {
       //create user in db
-      await db.user.create({
-        data: {
-          id: user!.id,
-          email: user!.email,
-        },
-      });
+      await db.sadd("userIDs", id);
+
+      // Add user object to the hash
+      await db.sadd(`users`, { name: given_name, email, id });
     }
 
     return { success: true };
@@ -40,26 +41,31 @@ export const appRouter = router({
         writtenBy: z.string(),
         imgUrl: z.string(),
         title: z.string(),
+        audioUrl: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       const { userId } = ctx;
+      const id = crypto.randomUUID();
+      const toPost: post = {
+        ...input,
+        id,
+        authorId: userId,
+        postedBy: ctx.user?.given_name,
+        views: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-      const post = await db.post.create({
-        data: {
-          text: input.text,
-          writtenBy: input.writtenBy,
-          imgUrl: input.imgUrl,
-          title: input.title,
-          authorId: userId,
-        },
-      });
+      const post = await db.sadd(`Posts`, toPost);
 
-      return post;
+      if (post !== 1) throw new TRPCError({ code: "NOT_IMPLEMENTED" });
+      return toPost;
     }),
 
   getAllPost: publicProcedure.query(async () => {
-    return await db.post.findMany();
+    const allPosts = (await db.smembers("Posts")) as post[];
+    return allPosts;
   }),
   createSubscribers: publicProcedure
     .input(z.object({ token: z.string(), email: z.string().email() }))
@@ -73,26 +79,24 @@ export const appRouter = router({
           message: "Invalid Token",
         });
 
-      const emailExist = await db.subscribers.findFirst({
-        where: {
-          email,
-        },
-      });
+      const subs = await db.smembers("Subscribers");
 
-      if (emailExist)
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Email already exist",
-        });
+      // Find the user object with the matching ID
+      const subExist = subs
+        .map((subs) => subs)
+        .find((sub: any) => sub.email === email);
 
-      const subscribe = await db.subscribers.create({
-        data: {
-          email,
-        },
-      });
+      if (subExist) throw new TRPCError({ code: "METHOD_NOT_SUPPORTED" });
 
-      return subscribe;
+      await db.sadd("Subscribers", { email, subscribedAt: new Date() });
+
+      return { success: true };
     }),
+
+  getAllSubscribers: privateProcedure.query(async () => {
+    const subs = (await db.smembers("Subscribers")) as Subs[];
+    return subs;
+  }),
 });
 
 export type AppRouter = typeof appRouter;
