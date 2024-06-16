@@ -9,13 +9,12 @@ generator client {
 }
 
 datasource db {
-  provider = "cockroachdb"
-  url      = env("DATABASE_URL")
-  relationMode = "prisma"
+ provider          = "postgresql"
+ url               = env("DATABASE_URL")
 }
 
 model User {
-  id String @id @unique //matches kinde user id
+  id String @id @unique 
   email String @unique
 
   Post Post[]
@@ -27,6 +26,7 @@ model Post {
   writtenBy String
   title     String
   imgUrl    String
+  audioUrl  String
  
   views     Int @default(0)
   createdAt DateTime @default(now())

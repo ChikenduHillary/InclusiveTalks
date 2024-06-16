@@ -18,6 +18,7 @@
     "@trpc/react-query": "^10.38.4",
     "@trpc/server": "^10.38.4",
     "@uploadthing/react": "^6.6.0",
+    "@upstash/redis": "^1.31.5",
     "cors": "^2.8.5",
     "date-fns": "^3.6.0",
     "lucide-react": "^0.378.0",
@@ -28,6 +29,7 @@
     "react-hook-form": "^7.51.3",
     "react-hot-toast": "^2.4.1",
     "react-icons": "^5.0.1",
+    "react-loading-skeleton": "^3.4.0",
     "trpc-nuxt": "^0.10.21",
     "uploadthing": "^6.12.0",
     "zod": "^3.23.6"

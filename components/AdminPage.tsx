@@ -14,21 +14,10 @@ import { trpc } from "@/app/_trpc/client";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
 import { useState } from "react";
-import { UploadButton, UploadDropzone } from "@/lib/uploadthing";
+import { UploadDropzone } from "@/lib/uploadthing";
 import "@uploadthing/react/styles.css";
 import { FaCheckCircle } from "react-icons/fa";
-
-type post = {
-  id: string;
-  num?: number;
-  text: string;
-  views?: number;
-  writtenBy: string;
-  title: string;
-  createdAt?: string;
-  updatedAt?: string;
-  authorId: string | null;
-};
+import { post } from "@/types";
 
 type FormData = z.infer<typeof postValidations>;
 const AdminPage = ({ user }: any) => {
@@ -37,6 +26,7 @@ const AdminPage = ({ user }: any) => {
     name: string;
     url: string;
   } | null>();
+  const [audioData, setAudioData] = useState<{ name: string; url: string }>();
 
   const {
     register,
@@ -49,7 +39,14 @@ const AdminPage = ({ user }: any) => {
     onSuccess: (data) => {
       toast.success("Posted Successfully");
       console.log(data);
-      setAllPosts((prev) => [...prev, data]);
+      setAllPosts((prev) => {
+        const sortedPosts = [...prev].slice().sort((a: any, b: any) => {
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        });
+        return sortedPosts;
+      });
       setImgData(null);
       reset();
     },
@@ -68,7 +65,7 @@ const AdminPage = ({ user }: any) => {
       // Do nothing
     } else if (allPostsDb.length > 0) {
       console.log("working");
-      if (!(allPosts.length > 0)) setAllPosts(allPostsDb);
+      if (allPosts.length !== allPostsDb.length) setAllPosts(allPostsDb);
     }
   }
 
@@ -76,7 +73,13 @@ const AdminPage = ({ user }: any) => {
     const { post, writtenBy, title } = data;
     try {
       if (!imgData) return toast.error("Youve not added an image");
-      createPost({ text: post, writtenBy, title, imgUrl: imgData?.url! });
+      createPost({
+        text: post,
+        writtenBy,
+        title,
+        imgUrl: imgData?.url!,
+        audioUrl: audioData?.url!,
+      });
     } catch (error) {
       toast.error("Something went wrong. try again later");
     }
@@ -92,7 +95,7 @@ const AdminPage = ({ user }: any) => {
         {user ? (
           <div className="md:p-5">
             <div className="flex flex-col md:flex-row gap-5 items-center justify-between">
-              <div className="text-brown self-start justify-between bg-white w-[25em] flex items-center p-3 rounded-xl border-2 border-brown">
+              <div className="text-brown self-start justify-between bg-white max-w-[25em] w-full flex items-center p-3 rounded-xl border-2 border-brown">
                 <IoSearch className="text-xl" />
                 <input
                   type="search"
@@ -221,6 +224,34 @@ const AdminPage = ({ user }: any) => {
                             </p>
                             <p className="font-semibold text-brown ">
                               {imgData.name}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className=" bg-white border-2 border-dashed border-brown rounded-xl mx-auto mt-10 cursor-pointer w-full max-w-lg h-fit">
+                      {!audioData ? (
+                        <UploadDropzone
+                          endpoint="audioUploader"
+                          className="ut-label:text-brown border-none ut-upload-icon:text-brown ut-readying:text-brown ut-uploading:text-brown ut-button:bg-brown ut-label:hover:text-brown ut-button:ut-uploading:bg-opacity-80 ut-button:ut-uploading:bg-brown"
+                          onClientUploadComplete={(res) => {
+                            // Do something with the response
+                            setAudioData(res[0]);
+                          }}
+                          onUploadError={(error: Error) => {
+                            // Do something with the error.
+                            alert(`ERROR! ${error.message}`);
+                          }}
+                        />
+                      ) : (
+                        <div className="h-[15em] w-full flex flex-col items-center p-5 text-center">
+                          <FaCheckCircle className="text-green-600 h-9 w-9 my-10" />
+                          <div>
+                            <p className="text-brown text-sm">
+                              Successfully Uploaded
+                            </p>
+                            <p className="font-semibold text-brown ">
+                              {audioData.name}
                             </p>
                           </div>
                         </div>

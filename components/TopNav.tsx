@@ -2,6 +2,7 @@ import { FunctionComponent } from "react";
 import logo from "@/public/inclusiveTalksLogo.svg";
 import Image from "next/image";
 import { RiMenu3Fill } from "react-icons/ri";
+import Link from "next/link";
 
 interface TopNavProps {}
 
@@ -13,11 +14,15 @@ const TopNav: FunctionComponent<TopNavProps> = () => {
       </div>
       <div className="hidden md:flex gap-8 items-center">
         <ul className="flex gap-5 items-center">
-          <li>Home</li>
+          <Link href={"/admin"}>
+            <li>Home</li>
+          </Link>
           <li>Blog</li>
           <li>Programs</li>
           <li>About Us</li>
-          <li>Contact</li>
+          <Link href={"/subscribers"}>
+            <li>Subscribers</li>
+          </Link>
         </ul>
         <button className="bg-[#833200] text-white  p-2 rounded-lg text-sm">
           SUBSCRIBE
