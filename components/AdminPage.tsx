@@ -21,7 +21,7 @@ import { post } from "@/types";
 
 type FormData = z.infer<typeof postValidations>;
 const AdminPage = ({ user }: any) => {
-  const [allPosts, setAllPosts] = useState<post[]>([]);
+  const [allPosts, setAllPosts] = useState<any>([]);
   const [imgData, setImgData] = useState<{
     name: string;
     url: string;
@@ -39,7 +39,7 @@ const AdminPage = ({ user }: any) => {
     onSuccess: (data) => {
       toast.success("Posted Successfully");
       console.log(data);
-      setAllPosts((prev) => {
+      setAllPosts((prev: any) => {
         const sortedPosts = [...prev].slice().sort((a: any, b: any) => {
           return (
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -126,7 +126,7 @@ const AdminPage = ({ user }: any) => {
                   </thead>
                   <tbody className="text-center border-2 space-x-2 border-brown">
                     {allPosts
-                      ? allPosts.map((post, i) => (
+                      ? allPosts.map((post: any, i: number) => (
                           <tr
                             key={post.id}
                             className={`${
