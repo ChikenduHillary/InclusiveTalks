@@ -16,7 +16,7 @@ export default async function Page() {
   const { getUser } = getKindeServerSession();
   const user = await getUser();
   const userJsons = await db.smembers("users");
-  // console.log(userJsons);
+  console.log(userJsons);
 
   // Find the user object with the matching ID
   if (user) {

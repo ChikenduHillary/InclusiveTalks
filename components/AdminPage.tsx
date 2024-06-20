@@ -26,7 +26,10 @@ const AdminPage = ({ user }: any) => {
     name: string;
     url: string;
   } | null>();
-  const [audioData, setAudioData] = useState<{ name: string; url: string }>();
+  const [audioData, setAudioData] = useState<{
+    name: string;
+    url: string;
+  } | null>();
 
   const {
     register,
@@ -38,7 +41,6 @@ const AdminPage = ({ user }: any) => {
   const { mutate: createPost, isLoading } = trpc.createPost.useMutation({
     onSuccess: (data) => {
       toast.success("Posted Successfully");
-      console.log(data);
       setAllPosts((prev: any) => {
         const sortedPosts = [...prev].slice().sort((a: any, b: any) => {
           return (
@@ -48,6 +50,7 @@ const AdminPage = ({ user }: any) => {
         return sortedPosts;
       });
       setImgData(null);
+      setAudioData(null);
       reset();
     },
   });
