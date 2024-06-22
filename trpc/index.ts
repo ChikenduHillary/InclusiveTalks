@@ -4,6 +4,7 @@ import { TRPCError } from "@trpc/server";
 import db from "@/db";
 import { z } from "zod";
 import { Subs, post } from "@/types";
+import { sendEmail } from "@/lib/utils";
 
 export const appRouter = router({
   authCallback: publicProcedure.query(async () => {
@@ -89,6 +90,17 @@ export const appRouter = router({
       if (subExist) throw new TRPCError({ code: "METHOD_NOT_SUPPORTED" });
 
       await db.sadd("Subscribers", { email, subscribedAt: new Date() });
+
+      // Send welcome email to new subscriber
+      try {
+        await sendEmail(email);
+      } catch (error) {
+        console.error("Failed to send welcome email:", error);
+        throw new TRPCError({
+          code: "NOT_IMPLEMENTED",
+          message: "Failed to send welcome email",
+        });
+      }
 
       return { success: true };
     }),
