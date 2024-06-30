@@ -34,8 +34,17 @@ export const sendEmail = async (toEmail: string) => {
       `,
     };
 
-    const result = await transporter.sendMail(mailOptions);
-    return result;
+    await new Promise((resolve, reject) => {
+      transporter.sendMail(mailOptions, (err, info) => {
+        if (err) {
+          console.error(err);
+          reject(err);
+        } else {
+          resolve(info);
+          return info;
+        }
+      });
+    });
   } catch (error) {
     throw new Error(`Failed to send email: ${error}`);
   }
