@@ -4,7 +4,7 @@ import { TRPCError } from "@trpc/server";
 import db from "@/db";
 import { z } from "zod";
 import { Subs, post } from "@/types";
-import { sendEmail } from "@/lib/utils";
+import { sendEmail } from "@/app/actions";
 
 export const appRouter = router({
   authCallback: publicProcedure.query(async () => {
@@ -38,11 +38,11 @@ export const appRouter = router({
   createPost: privateProcedure
     .input(
       z.object({
-        text: z.string(),
         writtenBy: z.string(),
         imgUrl: z.string(),
         title: z.string(),
         audioUrl: z.string(),
+        content: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -62,6 +62,18 @@ export const appRouter = router({
 
       if (post !== 1) throw new TRPCError({ code: "NOT_IMPLEMENTED" });
       return toPost;
+    }),
+
+  getBlogPost: publicProcedure
+    .input(z.object({ blogId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const allBlogs = (await db.smembers("Posts")) as post[];
+
+      const blog = allBlogs
+        .map((blog) => blog)
+        .find((blog) => blog.id == input.blogId);
+
+      return blog;
     }),
 
   getAllPost: publicProcedure.query(async () => {

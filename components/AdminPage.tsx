@@ -17,10 +17,15 @@ import { useState } from "react";
 import { UploadDropzone } from "@/lib/uploadthing";
 import "@uploadthing/react/styles.css";
 import { FaCheckCircle } from "react-icons/fa";
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+import "react-quill/dist/quill.snow.css";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { post } from "@/types";
 
 type FormData = z.infer<typeof postValidations>;
 const AdminPage = ({ user }: any) => {
+  const router = useRouter();
   const [allPosts, setAllPosts] = useState<any>([]);
   const [imgData, setImgData] = useState<{
     name: string;
@@ -30,6 +35,12 @@ const AdminPage = ({ user }: any) => {
     name: string;
     url: string;
   } | null>();
+
+  const [content, setContent] = useState("");
+
+  const handleChange = (value: string) => {
+    setContent(value);
+  };
 
   const {
     register,
@@ -61,27 +72,24 @@ const AdminPage = ({ user }: any) => {
     error,
   } = trpc.getAllPost.useQuery();
 
-  console.log(allPostsDb);
-
   if (allPostsDb) {
     if (allPostsDb.length == 0) {
       // Do nothing
     } else if (allPostsDb.length > 0) {
-      console.log("working");
       if (allPosts.length !== allPostsDb.length) setAllPosts(allPostsDb);
     }
   }
 
   const onSubmit = async (data: FormData) => {
-    const { post, writtenBy, title } = data;
+    const { writtenBy, title } = data;
     try {
       if (!imgData) return toast.error("Youve not added an image");
       createPost({
-        text: post,
         writtenBy,
         title,
         imgUrl: imgData?.url!,
         audioUrl: audioData?.url!,
+        content: content,
       });
     } catch (error) {
       toast.error("Something went wrong. try again later");
@@ -129,14 +137,15 @@ const AdminPage = ({ user }: any) => {
                   </thead>
                   <tbody className="text-center border-2 space-x-2 border-brown">
                     {allPosts
-                      ? allPosts.map((post: any, i: number) => (
+                      ? allPosts.map((post: post, i: number) => (
                           <tr
                             key={post.id}
+                            onClick={() => router.push(`blog/${post.id}`)}
                             className={`${
                               i % 2 == 0 ? "bg-[#DDAA99]" : "bg-[#FAE9DF]"
-                            } bg-opacity-70 h-[2.5em]`}
+                            } bg-opacity-70 h-[2.5em] cursor-pointer`}
                           >
-                            <td>{i}</td>
+                            <td>#00{i + 1}</td>
                             <td className="text-center grid place-items-center">
                               <p className="w-[15em] truncate text-center pt-2">
                                 {post.title}
@@ -188,22 +197,30 @@ const AdminPage = ({ user }: any) => {
                         />
                       </div>
                     </div>
-                    <div className="bg-white w-full border-brown border-2 mt-10 rounded-lg p-5 pt-20 h-[30em]">
-                      <textarea
-                        className={`border-2 rounded-lg h-full p-5  w-full ${
-                          errors.post?.message
-                            ? "border-red-500"
-                            : "border-brown"
-                        }`}
-                        {...register("post")}
+                    <div className="bg-white w-full border-brown border-2 mt-10 rounded-lg h-[30em]">
+                      <ReactQuill
+                        className="h-fuull border-none"
+                        value={content}
+                        onChange={handleChange}
+                        modules={{
+                          toolbar: [
+                            [{ header: [1, 2, false] }],
+                            ["bold", "italic", "underline"],
+                            [{ list: "ordered" }, { list: "bullet" }],
+                            ["clean"],
+                          ],
+                        }}
+                        formats={[
+                          "header",
+                          "bold",
+                          "italic",
+                          "underline",
+                          "list",
+                          "bullet",
+                        ]}
                       />
-                      {errors.post && (
-                        <p className="text-red-600 gap-2 mt-5 flex items-center">
-                          <TriangleAlert />
-                          <span className="mt-1">{errors.post?.message}</span>
-                        </p>
-                      )}
                     </div>
+
                     <div className=" bg-white border-2 border-dashed border-brown rounded-xl mx-auto mt-10 cursor-pointer w-full max-w-lg h-fit">
                       {!imgData ? (
                         <UploadDropzone
@@ -232,6 +249,7 @@ const AdminPage = ({ user }: any) => {
                         </div>
                       )}
                     </div>
+
                     <div className=" bg-white border-2 border-dashed border-brown rounded-xl mx-auto mt-10 cursor-pointer w-full max-w-lg h-fit">
                       {!audioData ? (
                         <UploadDropzone
