@@ -23,7 +23,7 @@ const Page = () => {
               <Skeleton baseColor="#FAE9DF" className="h-[5em]" />
               <Skeleton
                 count={4}
-                baseColor="#FAE9DF"
+                baseColor="rgba(0, 0, 0, 0.008)"
                 className="h-[2em] space-y-2"
               />
             </div>

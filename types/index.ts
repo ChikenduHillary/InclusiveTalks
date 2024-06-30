@@ -1,8 +1,8 @@
 export type post = {
   id: string;
-  text: string;
   views?: number;
   writtenBy: string;
+  content: string;
   title: string;
   createdAt?: Date | undefined | string;
   updatedAt?: Date | undefined | string;
