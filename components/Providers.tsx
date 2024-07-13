@@ -7,6 +7,9 @@ import { httpBatchLink } from "@trpc/client";
 import React, { PropsWithChildren, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
+import { NextUIProvider } from "@nextui-org/react";
+import { AppProvider } from "@/context";
+
 const Providers = ({ children }: PropsWithChildren) => {
   const [queryClient] = useState(() => new QueryClient());
   const [trpcClient] = useState(() =>
@@ -19,10 +22,16 @@ const Providers = ({ children }: PropsWithChildren) => {
     })
   );
   return (
-    <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-      <Toaster position="top-center" />
-    </trpc.Provider>
+    <AppProvider>
+      <NextUIProvider>
+        <trpc.Provider client={trpcClient} queryClient={queryClient}>
+          <QueryClientProvider client={queryClient}>
+            {children}
+          </QueryClientProvider>
+          <Toaster position="top-center" />
+        </trpc.Provider>
+      </NextUIProvider>
+    </AppProvider>
   );
 };
 

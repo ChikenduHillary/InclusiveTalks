@@ -1,5 +1,7 @@
 export type post = {
   id: string;
+  likes?: number;
+  comments?: [];
   views?: number;
   writtenBy: string;
   content: string;
