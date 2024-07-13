@@ -2,19 +2,30 @@
 
 import { trpc } from "@/app/_trpc/client";
 import TopNav from "@/components/TopNav";
+import { post } from "@/types";
 import Image from "next/image";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 // import aud from "../../../../public/audio.mp3";
 
 const Page = ({ params: { blogId } }: { params: { blogId: string } }) => {
+  const [blog, setBlog] = useState<post | null | undefined>(null);
+
   const {
-    data: blog,
+    mutate: getBlog,
     isLoading,
     error,
-  } = trpc.getBlogPost.useQuery({ blogId });
+  } = trpc.getBlogPost.useMutation({
+    onSuccess: (data: post) => {
+      console.log("successfull");
+      setBlog(data);
+    },
+  });
 
-  console.log(blog);
+  useEffect(() => {
+    console.log(blogId);
+    getBlog({ blogId });
+  }, []);
 
   return (
     <section>
@@ -36,13 +47,15 @@ const Page = ({ params: { blogId } }: { params: { blogId: string } }) => {
             <p className="text-3xl text-[#9e4021]">
               written By: {blog?.writtenBy}
             </p>
-            <Image
-              src={blog?.imgUrl!}
-              className="w-full rounded-xl mt-5"
-              height={1000}
-              width={1000}
-              alt="hapy"
-            />
+            {blog?.imgUrl && (
+              <Image
+                src={blog?.imgUrl!}
+                className="w-full rounded-xl mt-5"
+                height={1000}
+                width={1000}
+                alt="hapy"
+              />
+            )}
 
             <div className="p-2 w-full border-[#9e4021] border-2 my-5 rounded-full">
               <audio controls className="w-full">

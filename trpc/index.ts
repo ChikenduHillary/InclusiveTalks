@@ -54,6 +54,7 @@ export const appRouter = router({
         authorId: userId,
         postedBy: ctx.user?.given_name,
         views: 0,
+        likes: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -64,9 +65,104 @@ export const appRouter = router({
       return toPost;
     }),
 
+  deleteBlog: privateProcedure
+    .input(z.object({ blogId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { blogId } = input;
+
+      // Assuming your posts are stored in a set called `Posts`
+      const posts = (await db.smembers(`Posts`)) as post[];
+      const postToDelete = posts.find((post) => post.id === blogId);
+
+      if (!postToDelete) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Post not found" });
+      }
+
+      const result = await db.srem(`Posts`, postToDelete);
+
+      if (result !== 1) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete post",
+        });
+      }
+
+      console.log("done");
+      return { success: true };
+    }),
+
+  updatePost: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        likes: z.number().optional(),
+        views: z.number().optional(),
+        comments: z.array(z.string()).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, likes, views, comments } = input;
+
+      // Assuming your posts are stored in a set called `Posts`
+      const posts = (await db.smembers(`Posts`)) as post[];
+      const postToUpdate = posts.find((post) => post.id === id);
+
+      if (!postToUpdate) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Post not found" });
+      }
+
+      const updatedPost = {
+        ...postToUpdate,
+        likes:
+          likes !== undefined
+            ? postToUpdate.likes
+              ? postToUpdate.likes + likes
+              : 1
+            : postToUpdate.likes,
+        views:
+          views !== undefined
+            ? postToUpdate.views
+              ? postToUpdate.views + 1
+              : 1
+            : postToUpdate.views,
+        comments:
+          comments !== undefined
+            ? postToUpdate.comments
+              ? [
+                  ...postToUpdate.comments,
+                  { comment: comments[0], timeCreated: new Date() },
+                ]
+              : [{ comment: comments[0], timeCreated: new Date() }]
+            : postToUpdate.comments,
+        updatedAt: new Date(),
+      };
+
+      console.log({ updatedPost });
+
+      const result = await db.srem(`Posts`, postToUpdate);
+      console.log({ result });
+      if (result !== 1) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update post",
+        });
+      }
+
+      const addResult = await db.sadd(`Posts`, updatedPost);
+      console.log({ addResult });
+      if (addResult !== 1) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to add updated post",
+        });
+      }
+      console.log(updatedPost);
+      return updatedPost;
+    }),
+
   getBlogPost: publicProcedure
     .input(z.object({ blogId: z.string() }))
-    .query(async ({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       const allBlogs = (await db.smembers("Posts")) as post[];
 
       const blog = allBlogs
@@ -80,6 +176,7 @@ export const appRouter = router({
     const allPosts = (await db.smembers("Posts")) as post[];
     return allPosts;
   }),
+
   createSubscribers: publicProcedure
     .input(z.object({ token: z.string(), email: z.string().email() }))
     .mutation(async ({ ctx, input }) => {

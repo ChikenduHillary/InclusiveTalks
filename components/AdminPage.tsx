@@ -1,19 +1,17 @@
 "use client";
 
-import { IoSearch } from "react-icons/io5";
-import { FaAngleDown } from "react-icons/fa6";
 import { MdArrowUpward } from "react-icons/md";
 import { useForm } from "react-hook-form";
 import { FaArrowDown } from "react-icons/fa6";
 import { z } from "zod";
 import { postValidations } from "@/lib/validations/post";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, TriangleAlert } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { LoginLink } from "@kinde-oss/kinde-auth-nextjs";
 import { trpc } from "@/app/_trpc/client";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { UploadDropzone } from "@/lib/uploadthing";
 import "@uploadthing/react/styles.css";
 import { FaCheckCircle } from "react-icons/fa";
@@ -22,11 +20,12 @@ import "react-quill/dist/quill.snow.css";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { post } from "@/types";
+import TableContainer from "./Table/Table";
+import { Blog, useAppContext } from "@/context";
 
 type FormData = z.infer<typeof postValidations>;
 const AdminPage = ({ user }: any) => {
   const router = useRouter();
-  const [allPosts, setAllPosts] = useState<any>([]);
   const [imgData, setImgData] = useState<{
     name: string;
     url: string;
@@ -37,6 +36,7 @@ const AdminPage = ({ user }: any) => {
   } | null>();
 
   const [content, setContent] = useState("");
+  const { setBlogs, state } = useAppContext();
 
   const handleChange = (value: string) => {
     setContent(value);
@@ -49,36 +49,33 @@ const AdminPage = ({ user }: any) => {
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(postValidations) });
 
+  const resetFields = () => {
+    // setImgData(null);
+    // setAudioData(null);
+    // setContent("");
+    // reset();
+  };
+
   const { mutate: createPost, isLoading } = trpc.createPost.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast.success("Posted Successfully");
-      setAllPosts((prev: any) => {
-        const sortedPosts = [...prev].slice().sort((a: any, b: any) => {
-          return (
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-        });
-        return sortedPosts;
-      });
-      setImgData(null);
-      setAudioData(null);
-      reset();
+      console.log("sort started");
+      setBlogs([...state.blogs, data]);
+      resetFields();
     },
   });
 
   const {
     data: allPostsDb,
-    isLoading: allPostsLoadiing,
+    isLoading: allPostsLoading,
+    refetch,
     error,
-  } = trpc.getAllPost.useQuery();
-
-  if (allPostsDb) {
-    if (allPostsDb.length == 0) {
-      // Do nothing
-    } else if (allPostsDb.length > 0) {
-      if (allPosts.length !== allPostsDb.length) setAllPosts(allPostsDb);
-    }
-  }
+  } = trpc.getAllPost.useQuery(undefined, {
+    onSuccess: (post: any) => {
+      console.log({ post });
+      setBlogs(post);
+    },
+  });
 
   const onSubmit = async (data: FormData) => {
     const { writtenBy, title } = data;
@@ -105,63 +102,11 @@ const AdminPage = ({ user }: any) => {
 
         {user ? (
           <div className="md:p-5">
-            <div className="flex flex-col md:flex-row gap-5 items-center justify-between">
-              <div className="text-brown self-start justify-between bg-white max-w-[25em] w-full flex items-center p-3 rounded-xl border-2 border-brown">
-                <IoSearch className="text-xl" />
-                <input
-                  type="search"
-                  name=""
-                  id=""
-                  className="w-[90%] outline-none"
-                  placeholder="Search.."
-                />
-              </div>
-              <div className="text-brown self-end justify-between font-semibold bg-white gap-3 flex items-center p-3 rounded-xl border-2 border-brown">
-                <p>Apr 1, 2024 - Apr 30, 2024</p>
-                <FaAngleDown />
-              </div>
-            </div>
-
             <div className="bg-white rounded-xl grid place-items-center border-brown mt-10 p-5 border-2 overflow-x-auto ">
-              {allPostsLoadiing ? (
+              {allPostsLoading ? (
                 <Loader2 className="animate-spin w-7 h-7 text-brown" />
               ) : (
-                <table className=" text-brown w-full">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Title</th>
-                      <th>last Modified</th>
-                      <th>Views</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-center border-2 space-x-2 border-brown">
-                    {allPosts
-                      ? allPosts.map((post: post, i: number) => (
-                          <tr
-                            key={post.id}
-                            onClick={() => router.push(`blog/${post.id}`)}
-                            className={`${
-                              i % 2 == 0 ? "bg-[#DDAA99]" : "bg-[#FAE9DF]"
-                            } bg-opacity-70 h-[2.5em] cursor-pointer`}
-                          >
-                            <td>#00{i + 1}</td>
-                            <td className="text-center grid place-items-center">
-                              <p className="w-[15em] truncate text-center pt-2">
-                                {post.title}
-                              </p>
-                            </td>
-                            <td>
-                              <p className="truncate">
-                                {format(post.createdAt!, "PPpp")}
-                              </p>
-                            </td>
-                            <td>{post.views}</td>
-                          </tr>
-                        ))
-                      : null}
-                  </tbody>
-                </table>
+                <TableContainer />
               )}
             </div>
 
