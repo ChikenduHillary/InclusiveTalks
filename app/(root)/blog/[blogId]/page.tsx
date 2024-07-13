@@ -2,21 +2,35 @@
 
 import { trpc } from "@/app/_trpc/client";
 import TopNav from "@/components/TopNav";
-import { post } from "@/types";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 // import aud from "../../../../public/audio.mp3";
+type post = {
+  content: string;
+  id: string;
+  writtenBy: string;
+  imgUrl: string;
+  title: string;
+  authorId: string;
+  audioUrl?: string;
+  likes?: number;
+  views?: number;
+  comments?: [];
+  createdAt?: string;
+  updatedAt?: string;
+  postedBy?: string;
+};
 
 const Page = ({ params: { blogId } }: { params: { blogId: string } }) => {
-  const [blog, setBlog] = useState<post | null | undefined>(null);
+  const [blog, setBlog] = useState<any>(null);
 
   const {
     mutate: getBlog,
     isLoading,
     error,
   } = trpc.getBlogPost.useMutation({
-    onSuccess: (data: post) => {
+    onSuccess: (data) => {
       console.log("successfull");
       setBlog(data);
     },
