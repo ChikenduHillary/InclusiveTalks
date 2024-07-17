@@ -16,15 +16,16 @@ export default async function Page() {
   const { getUser } = getKindeServerSession();
   const user = await getUser();
   const userJsons = await db.smembers("users");
-  console.log(userJsons);
+  console.log({ user });
+  console.log({ userJsons });
 
   // Find the user object with the matching ID
-  if (user) {
+  if (user?.id) {
     const dbUser = userJsons
-      .map((userJson) => userJson)
+      .map((userJson) => userJson as unknown as User)
       .find((userdb: any) => userdb.id === user?.id);
 
-    if (!dbUser) redirect("/auth-callback?origin=admin");
+    if (!dbUser?.id) redirect("/auth-callback?origin=admin");
   }
 
   return (

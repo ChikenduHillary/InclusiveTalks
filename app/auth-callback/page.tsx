@@ -20,18 +20,16 @@ const Page = () => {
 const PageContent = ({ origin, router }: any) => {
   const { data, isLoading } = trpc.authCallback.useQuery(undefined, {
     onSuccess: ({ success }) => {
+      console.log({ success });
       if (success) {
         //user is synced to db
         router.push(origin ? `/${origin}` : "/admin");
       }
     },
     onError: (err) => {
-      if (err.data?.code === "UNAUTHORIZED") {
-        router.push("/admin");
-      }
+      console.log({ err });
+      router.push("/admin");
     },
-    retry: true,
-    retryDelay: 500,
   });
 
   return (
