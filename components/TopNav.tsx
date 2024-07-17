@@ -1,8 +1,11 @@
+"use client";
+
 import { FunctionComponent } from "react";
 import logo from "@/public/inclusiveTalksLogo.svg";
 import Image from "next/image";
 import { RiMenu3Fill } from "react-icons/ri";
 import Link from "next/link";
+import { LogoutLink } from "@kinde-oss/kinde-auth-nextjs";
 
 interface TopNavProps {}
 
@@ -19,7 +22,7 @@ const TopNav: FunctionComponent<TopNavProps> = () => {
           </Link>
           <li>Blog</li>
           <li>Programs</li>
-          <li>About Us</li>
+          <LogoutLink>Log Out</LogoutLink>
           <Link href={"/subscribers"}>
             <li>Subscribers</li>
           </Link>

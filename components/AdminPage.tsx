@@ -50,10 +50,10 @@ const AdminPage = ({ user }: any) => {
   } = useForm<FormData>({ resolver: zodResolver(postValidations) });
 
   const resetFields = () => {
-    // setImgData(null);
-    // setAudioData(null);
-    // setContent("");
-    // reset();
+    setImgData(null);
+    setAudioData(null);
+    setContent("");
+    reset();
   };
 
   const { mutate: createPost, isLoading } = trpc.createPost.useMutation({

@@ -12,8 +12,12 @@ export const appRouter = router({
     const user = await getUser();
     const { id, given_name, email } = user!;
 
-    if (!user!.id || !user!.email)
+    console.log("trpc user", user);
+
+    if (!user?.id || !user?.email) {
+      console.log("omo no be lie oh");
       throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
 
     // check if the user is in the database
     // Get all user objects from the set
@@ -22,12 +26,11 @@ export const appRouter = router({
     // Find the user object with the matching ID
     const dbUser = userJsons
       .map((userJson) => JSON.parse(userJson))
-      .find((user) => user.id === id);
+      .find((user) => user?.id === id);
+
+    console.log("dbUser trpc", dbUser);
 
     if (!dbUser) {
-      //create user in db
-      await db.sadd("userIDs", id);
-
       // Add user object to the hash
       await db.sadd(`users`, { name: given_name, email, id });
     }
