@@ -12,8 +12,6 @@ export const appRouter = router({
     const user = await getUser();
     const { id, given_name, email } = user!;
 
-    console.log("trpc user", user);
-
     if (!user?.id || !user?.email) {
       console.log("omo no be lie oh");
       throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -33,7 +31,7 @@ export const appRouter = router({
     if (!dbUser) {
       // Add user object to the hash
       await db.sadd(`users`, { name: given_name, email, id });
-    }
+    } 
 
     return { success: true };
   }),
@@ -159,7 +157,7 @@ export const appRouter = router({
           message: "Failed to add updated post",
         });
       }
-      console.log(updatedPost);
+
       return updatedPost;
     }),
 
