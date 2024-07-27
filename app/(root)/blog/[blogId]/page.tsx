@@ -37,7 +37,6 @@ const Page = ({ params: { blogId } }: { params: { blogId: string } }) => {
   });
 
   useEffect(() => {
-    console.log(blogId);
     getBlog({ blogId });
   }, []);
 

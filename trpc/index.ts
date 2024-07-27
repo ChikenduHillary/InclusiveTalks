@@ -6,11 +6,19 @@ import { z } from "zod";
 import { Subs, post } from "@/types";
 import { sendEmail } from "@/app/actions";
 
+type User = {
+  name: string;
+  email: string;
+  id: string;
+};
+
 export const appRouter = router({
   authCallback: publicProcedure.query(async () => {
     const { getUser } = getKindeServerSession();
     const user = await getUser();
     const { id, given_name, email } = user!;
+
+    // console.log("trpc user", user);
 
     if (!user?.id || !user?.email) {
       console.log("omo no be lie oh");
@@ -21,17 +29,17 @@ export const appRouter = router({
     // Get all user objects from the set
     const userJsons = await db.smembers("users");
 
+    // console.log({ userJsons });
+
     // Find the user object with the matching ID
     const dbUser = userJsons
-      .map((userJson) => JSON.parse(userJson))
-      .find((user) => user?.id === id);
-
-    console.log("dbUser trpc", dbUser);
+      .map((userJson) => userJson)
+      .find((user: any) => user?.id === id);
 
     if (!dbUser) {
       // Add user object to the hash
       await db.sadd(`users`, { name: given_name, email, id });
-    } 
+    }
 
     return { success: true };
   }),

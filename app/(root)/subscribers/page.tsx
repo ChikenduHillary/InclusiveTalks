@@ -40,7 +40,7 @@ const Page = () => {
                   {subscribers
                     ? subscribers.map(({ email, subscribedAt }, i) => (
                         <tr
-                          key={email}
+                          key={`${email}-${i}`}
                           className={`${
                             i % 2 == 0 ? "bg-[#DDAA99]" : "bg-[#FAE9DF]"
                           } bg-opacity-70 h-[2.5em]`}
